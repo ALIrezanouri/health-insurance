@@ -1,0 +1,10 @@
+/*
+  This file is for any custom component-level CSS that isn't
+  easily handled by Tailwind's utility classes. For example,
+  complex animations or very specific element styling.
+*/
+
+/* Example of a custom component style */
+.custom-component {
+  /* ... your styles here */
+}
