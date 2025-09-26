@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from api.v1.public import centers, insurance
 from api.v1.admin import router as admin_router
-from database.connection import init_db, close_db
+from database.connection import init_db, close_db, get_db
 from contextlib import asynccontextmanager
+from motor.motor_asyncio import AsyncIOMotorClient
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,4 +38,10 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    try:
+        # Test database connection
+        db = get_db()
+        await db.command('ping')
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail={"status": "unhealthy", "database": "disconnected", "error": str(e)})

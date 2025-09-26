@@ -21,9 +21,14 @@ const error = computed(() => searchStore.error);
 
 <template>
   <div>
-    <div v-if="error" class="text-center py-8 text-destructive">
-      {{ t('common.error') }}: {{ error }}
+    <div v-if="error" class="text-center py-8">
+      <div class="text-destructive mb-4">
+        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+        <h3 class="text-xl font-semibold">{{ t('common.error') }}</h3>
+        <p class="mt-2">{{ error }}</p>
+      </div>
       <AppButton @click="searchStore.searchCenters()" class="mt-4">
+        <i class="fas fa-redo mr-2"></i>
         {{ t('common.retry') }}
       </AppButton>
     </div>

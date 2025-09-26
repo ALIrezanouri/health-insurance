@@ -38,12 +38,11 @@ export const useSearchStore = defineStore('search', () => {
   const fetchInsuranceCompanies = async () => {
     try {
       loading.value = true;
-      // Assuming getInsuranceCompanies() returns InsuranceCompany[]
-      insuranceCompanies.value = await useApi().getInsuranceCompanies();
       error.value = null;
-    } catch (err) {
-      error.value = 'Failed to load insurance companies';
-      console.error(err);
+      insuranceCompanies.value = await useApi().getInsuranceCompanies();
+    } catch (err: any) {
+      error.value = err.message || 'Failed to load insurance companies';
+      console.error('Error fetching insurance companies:', err);
     } finally {
       loading.value = false;
     }
@@ -58,26 +57,29 @@ export const useSearchStore = defineStore('search', () => {
   const searchCenters = async () => {
     try {
       loading.value = true;
+      error.value = null;
       currentPage.value = 1;
       
-      const params = {
-        ...(filters.value.insuranceIds.length > 0 && { insurance_id: filters.value.insuranceIds }),
-        ...(filters.value.services.length > 0 && { service: filters.value.services }),
-        ...(filters.value.location && {
-          lat: filters.value.location.lat,
-          lng: filters.value.location.lng,
-          radius: filters.value.radius
-        })
-      };
+      const params: any = {};
       
-      // Ensure params are not empty if no filters are applied, or handle appropriately
-      // If params is empty, it might fetch all centers, which could be intended or not.
+      if (filters.value.insuranceIds.length > 0) {
+        params.insurance_id = filters.value.insuranceIds;
+      }
+      
+      if (filters.value.services.length > 0) {
+        params.service = filters.value.services;
+      }
+      
+      if (filters.value.location) {
+        params.lat = filters.value.location.lat;
+        params.lng = filters.value.location.lng;
+        params.radius = filters.value.radius;
+      }
       
       medicalCenters.value = await useApi().getMedicalCenters(params);
-      error.value = null;
-    } catch (err) {
-      error.value = 'Failed to search medical centers';
-      console.error(err);
+    } catch (err: any) {
+      error.value = err.message || 'Failed to search medical centers';
+      console.error('Error searching medical centers:', err);
     } finally {
       loading.value = false;
     }

@@ -1,48 +1,84 @@
 import type { MedicalCenter, InsuranceCompany } from '@/types';
 
-// Mock data for development
-const mockInsuranceCompanies: InsuranceCompany[] = [
-  { id: '1', name: 'بیمه البرز' },
-  { id: '2', name: 'بیمه پاسارگاد' },
-  { id: '3', name: 'بیمه ایران' },
-  { id: '4', name: 'بیمه کارآفرین' },
-];
-
-const mockMedicalCenters: MedicalCenter[] = [
-  {
-    id: '1',
-    name: 'کلینیک تخصصی دندانپزشکی',
-    address: 'تهران، خیابان ولیعصر، نبش کوچه شهیدی',
-    phone: '021-23456789',
-    accepted_insurance: [
-      { id: '1', name: 'بیمه البرز', services: ['dentistry'] },
-      { id: '2', name: 'بیمه پاسارگاد', services: ['dentistry', 'general'] }
-    ]
-  },
-  {
-    id: '2',
-    name: 'مرکز تصویربرداری پیشرفته',
-    address: 'تهران، میدان تجریش، برج تجاری تجریش',
-    phone: '021-98765432',
-    accepted_insurance: [
-      { id: '3', name: 'بیمه ایران', services: ['imaging'] },
-      { id: '1', name: 'بیمه البرز', services: ['imaging', 'lab'] }
-    ]
-  }
-];
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export function useApi() {
   return {
     getInsuranceCompanies: async (): Promise<InsuranceCompany[]> => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return mockInsuranceCompanies;
+      try {
+        const response = await fetch(`${API_BASE}/api/v1/public/insurance`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch insurance companies: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching insurance companies:', error);
+        throw error;
+      }
     },
     
     getMedicalCenters: async (params?: any): Promise<MedicalCenter[]> => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      return mockMedicalCenters;
+      try {
+        // Build query parameters
+        const queryParams = new URLSearchParams();
+        
+        if (params) {
+          // Handle insurance IDs
+          if (params.insurance_id) {
+            if (Array.isArray(params.insurance_id)) {
+              params.insurance_id.forEach((id: string) => queryParams.append('insurance_id', id));
+            } else {
+              queryParams.append('insurance_id', params.insurance_id);
+            }
+          }
+          
+          // Handle services
+          if (params.service) {
+            if (Array.isArray(params.service)) {
+              params.service.forEach((service: string) => queryParams.append('service', service));
+            } else {
+              queryParams.append('service', params.service);
+            }
+          }
+          
+          // Handle location parameters
+          if (params.lat && params.lng) {
+            queryParams.append('lat', params.lat);
+            queryParams.append('lng', params.lng);
+            queryParams.append('radius', params.radius || '10');
+          }
+          
+          // Handle city and province
+          if (params.city) {
+            queryParams.append('city', params.city);
+          }
+          
+          if (params.province) {
+            queryParams.append('province', params.province);
+          }
+        }
+        
+        // Construct URL
+        let url = `${API_BASE}/api/v1/public/centers`;
+        if (queryParams.toString()) {
+          url += `?${queryParams.toString()}`;
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch medical centers: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching medical centers:', error);
+        throw error;
+      }
     }
   };
 }
