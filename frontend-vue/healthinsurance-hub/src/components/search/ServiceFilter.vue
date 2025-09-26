@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import { computed, watch } from 'vue'
+import { useSearchStore } from '@/stores/search'
+
+const searchStore = useSearchStore()
+
+const serviceOptions = {
+  dentistry: 'دندانپزشکی',
+  imaging: 'تصویربرداری',
+  lab: 'آزمایشگاه',
+  general: 'معاینه عمومی',
+  specialist: 'معاینه تخصصی'
+}
+
+// Directly use the store's refs for selectedServices
+const selectedServices = computed({
+  get: () => searchStore.selectedServices,
+  set: (value) => searchStore.selectedServices = value,
+})
+
+// Watch for changes in selectedServices and trigger a search
+watch(selectedServices, () => {
+  searchStore.searchCenters()
+}, { deep: true })
+
+const clearSelection = () => {
+  selectedServices.value = []
+}
+</script>
+
 <template>
   <div class="bg-white rounded-xl shadow-sm p-4">
     <h3 class="text-lg font-semibold mb-3">انواع خدمات</h3>
@@ -5,7 +35,7 @@
       <div 
         v-for="(label, service) in serviceOptions" 
         :key="service"
-        class="flex items-center"
+        class="flex items-center cursor-pointer"
       >
         <input 
           type="checkbox" 
@@ -26,20 +56,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-const serviceOptions = {
-  dentistry: 'دندانپزشکی',
-  imaging: 'تصویربرداری',
-  lab: 'آزمایشگاه',
-  general: 'معاینه عمومی',
-  specialist: 'معاینه تخصصی'
-}
-
-// استفاده از prop به جای model برای اتصال به store
-const selectedServices = defineModel<string[]>({ default: [] })
-
-const clearSelection = () => {
-  selectedServices.value = []
-}
-</script>

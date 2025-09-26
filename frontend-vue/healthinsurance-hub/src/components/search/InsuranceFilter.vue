@@ -1,8 +1,52 @@
+<script setup lang="ts">
+import { computed, watch } from 'vue'
+import { useSearchStore } from '@/stores/search'
+
+const searchStore = useSearchStore()
+
+// Directly use the store's refs for selectedInsuranceIds
+const selectedInsurances = computed({
+  get: () => searchStore.selectedInsuranceIds,
+  set: (value) => searchStore.selectedInsuranceIds = value,
+})
+
+// Computed property for insurance companies
+const insuranceCompanies = computed(() => searchStore.insuranceCompanies)
+
+// Watch for changes in selectedInsurances and trigger a search
+watch(selectedInsurances, (newValue) => {
+  searchStore.searchCenters()
+}, { deep: true })
+
+// Logic for "Select All"
+const allSelected = computed(() => {
+  return selectedInsurances.value.length === insuranceCompanies.value.length && insuranceCompanies.value.length > 0
+})
+
+const toggleAll = () => {
+  if (allSelected.value) {
+    selectedInsurances.value = []
+  } else {
+    selectedInsurances.value = insuranceCompanies.value.map(company => company.id)
+  }
+}
+
+const clearSelection = () => {
+  selectedInsurances.value = []
+}
+
+// Ensure insurance companies are fetched if not already
+// This might be redundant if SearchView already fetches them, but good for component self-sufficiency
+// if (insuranceCompanies.value.length === 0) {
+//   searchStore.fetchInsuranceCompanies()
+// }
+</script>
+
 <template>
   <div class="bg-white rounded-xl shadow-sm p-4">
     <h3 class="text-lg font-semibold mb-3">بیمه‌های مورد نظر</h3>
     <div class="space-y-2">
-      <label class="flex items-center">
+      <label class="flex items-center cursor-pointer">
         <input 
           type="checkbox" 
           :checked="allSelected" 
@@ -14,7 +58,7 @@
       <div 
         v-for="company in insuranceCompanies" 
         :key="company.id"
-        class="flex items-center"
+        class="flex items-center cursor-pointer"
       >
         <input 
           type="checkbox" 
@@ -35,30 +79,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useSearchStore } from '@/stores/search'
-
-const searchStore = useSearchStore()
-const insuranceCompanies = computed(() => searchStore.insuranceCompanies)
-
-// استفاده از prop به جای model برای اتصال به store
-const selectedInsurances = defineModel<string[]>({ default: [] })
-
-const allSelected = computed(() => {
-  return selectedInsurances.value.length === insuranceCompanies.value.length && insuranceCompanies.value.length > 0
-})
-
-const toggleAll = () => {
-  if (allSelected.value) {
-    selectedInsurances.value = []
-  } else {
-    selectedInsurances.value = insuranceCompanies.value.map(company => company.id)
-  }
-}
-
-const clearSelection = () => {
-  selectedInsurances.value = []
-}
-</script>
